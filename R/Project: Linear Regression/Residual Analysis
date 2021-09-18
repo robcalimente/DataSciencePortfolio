@@ -1,0 +1,69 @@
+### Residaul Analysis - MLR
+library(MASS)
+library(matlib)
+library(olsrr)
+library(qpcR)
+library(openxlsx)
+
+## Scaled Residuals
+n <- 28
+p <- 9
+# Studentized
+nfl_student <- studres(nfl_mlr)
+
+# Ordinary Residuals
+nfl_resid <- resid(nfl_mlr)
+
+# R-Student
+msres <- (sum(nfl_resid^2)/(n-p))
+si_squared <- ((n-p)*msres - (nfl_resid^2/(1-hii)))/(n-p-1)     
+nfl_rstudent <- nfl_resid/(sqrt(si_squared*(1-hii)))
+
+# PRESS Residuals
+x0 <- replicate(28, 1)
+X <- matrix(c(x0,x1,x2,x3,x4,x5,x6,x7,x8,x9), nrow=28, ncol=10)
+hat_matrix <- X %*% inv((t(X) %*% X)) %*% t(X)
+hii <- diag(hat_matrix)
+nfl_press <- replicate(28,0)
+for (i in 1:28){
+  nfl_press[i] <- nfl_resid[i]/(1-hii[i])} # Function to calculate PRESS residuals
+influence <- as.numeric(nfl_resid-nfl_press) # Difference between ordinary residuals and press residuals
+
+# Data frame of scaled residuals
+nfl_residuals <- data.frame(ord.resid=nfl_resid,studentized=nfl_student, 
+                            rstudent=nfl_rstudent,press=nfl_press,influence=influence)
+write.xlsx(nfl_residuals, "NFL Residuals")
+
+qt(c(0.025,0.975), df=17)
+qt(c(0.025,0.975), df=18)
+
+
+### Residuals for Reduced Model
+n <- 28
+p <- 4
+nfl.reduced.student <- studres(nfl.lmw.subset)
+nfl.reduced.resid <- nfl.lmw.subset$residuals
+
+
+# R-Student - reduced model
+X.red <- matrix(c(x0,x2,x7,x8,x9), nrow=28, ncol=5)
+hat.matrix.red <- X.red %*% inv((t(X.red) %*% X.red)) %*% t(X.red)
+hii.red <- diag(hat.matrix.red)
+msres.reduced <- (sum(nfl.reduced.resid^2)/(n-p))
+si_squared.red <- ((n-p)*msres.reduced - (nfl.reduced.resid^2/(1-hii.red)))/(n-p-1)     
+nfl.red.rstudent <- nfl.reduced.resid/(sqrt(si_squared.red*(1-hii.red)))
+
+# PRESS Residuals
+nfl_press.red <- replicate(28,0)
+for (i in 1:28){
+  nfl_press.red[i] <- nfl.reduced.resid[i]/(1-hii.red[i])} # Function to calculate PRESS residuals
+influence <- as.numeric(nfl.reduced.resid-nfl_press.red)
+
+nfl_residuals.reduced <- data.frame(ord.resid=nfl.reduced.resid,studentized=nfl.reduced.student, 
+                            rstudent=nfl.red.rstudent,press=nfl_press.red,influence=influence)
+View(nfl_residuals.reduced)
+
+y_hat.red
+mean(y_hat.red)*(1-mean(y_hat.red))
+
+plot(x9, y_hat.red)

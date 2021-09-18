@@ -1,0 +1,68 @@
+x = scan(file.choose())
+X = log(x)
+var_X = var(X)
+n = length(X)
+
+xi = seq(from = -3, to = 3.02, by = 0.01)
+
+normal_kernel = function(x){
+  exp(-x^2/2)/(sqrt(2*pi))
+}
+epanechnikov = function(x){
+  0.75*(1-x^2)
+}
+triweight = function(x){
+  (35/32)*(1-x^2)^3
+}
+
+kernel_estimator_normal = function(x, xi, n, h){
+  (1/(n*h))*sum(normal_kernel((x-xi)/h))
+}
+
+kernel_estimator_normal_silverman = kernel_estimator_normal(x = runif(n,min=-3, max=3), 
+                                                            xi = X, n=n, h=h_silverman)
+hist(kernel_estimator_normal_silverman, prob=TRUE)
+
+#Part A
+#Silverman
+h_silverman = nthroot((4/(3*n)),5)* var_X # 0.1856048
+hist(X, main ='Silverman', prob=TRUE, ylim=c(0,0.5), xlab = "X")
+lines(density(X, bw = h_silverman, kernel = "gaussian"),lwd = 2, col = "red")
+
+#Sheather-Jones
+h0 = h_silverman
+install.packages('locfit')
+library(locfit)
+h_SJ = sjpi(X, h0) # 0.1707632
+hist(X, main ='Sheather-Jones', prob=TRUE, ylim=c(0,0.5), xlab = "X")
+lines(density(X, bw = 0.1707632, kernel = "gaussian"),lwd = 2, col = "blue")
+
+#Terrell
+Rk_normal = 1/(2*sqrt(pi))
+h_terrell = 3 * nthroot(Rk_normal/(35*n), 5) * var_X # 0.2004418
+hist(X, main ='Terrell', prob=TRUE, ylim=c(0,0.5), xlab = "X")
+lines(density(X, bw = h_terrell, kernel = "gaussian"),lwd = 2, col = "dark green")
+
+#Part B
+#Uniform
+plot(density(X, bw = h_silverman, kernel = "rectangular"), main = "Uniform", 
+     xlab = "X", lwd = 2, col = "red")
+
+#Epanechnikov
+plot(density(X, bw = h_silverman, kernel = "epanechnikov"), main = "Epanechnikov", 
+     xlab = "X", lwd = 2, col = "blue")
+
+#Triweight
+plot(density(X, bw = h_silverman, kernel = "triangular"), main = "Traingular", 
+     xlab = "X", lwd = 2, col = "green")
+
+#Histogram Estimator
+Bk <- seq(min(X), max(X), by = h_silverman)
+nk = c()
+pk = c()
+for(i in 1:length(Bk)){
+  nk[i] = sum(Bk[i] < X & X < Bk[i+1])
+  pk[i] = nk[i]/n
+}
+
+plot(pk, prob=TRUE, col="Red", type='h', lwd = 3, main = "Histogram Estimator", xlab='X')

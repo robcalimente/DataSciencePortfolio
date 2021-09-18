@@ -1,0 +1,36 @@
+# Gibbs Sampler
+
+burn = 1000
+n = 10000
+rho = 0
+
+gibbs<-function (n, rho, burn) 
+{
+  mat <- matrix(ncol = 2, nrow = n)
+  x <- 0
+  y <- 0
+  mat[1, ] <- c(x, y)
+  for (i in burn:n) {
+    x <- rnorm(1, rho * y, sqrt(1 - rho^2))
+    y <- rnorm(1, rho * x, sqrt(1 - rho^2))
+    mat[i, ] <- c(x, y)
+  }
+  mat
+}
+
+bivariate <- gibbs(10000, rho, burn)
+
+mean(bivariate[(burn+1):n,1])
+mean(bivariate[(burn+1):n,2])
+sd(bivariate[(burn+1):n,1])
+sd(bivariate[(burn+1):n,2])
+
+
+par(mfrow=c(3,2))
+plot(bivariate,col=1:10000)
+plot(bivariate,type="l")
+plot(ts(bivariate[,1]))
+plot(ts(bivariate[,2]))
+hist(bivariate[,1],40)
+hist(bivariate[,2],40)
+par(mfrow=c(1,1))

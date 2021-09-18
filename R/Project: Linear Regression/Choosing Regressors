@@ -1,0 +1,19 @@
+### Choosing Subset of Regressors
+## R^2, Cp, MSE
+k <- ols_step_all_possible(nfl.lmw)
+w <- ols_step_best_subset(nfl.lmw)
+plot(w)
+View(k)
+which.min(k$cp)
+which.max(k$rsquare)
+k[46,]
+k[130,]
+
+## Forward Selection
+forward <- ols_step_forward_p(nfl.lmw)
+
+## Backward Selection
+backward <- ols_step_backward_p(nfl.lmw)
+
+## Stepwise 
+stepwise <- ols_step_both_p(nfl.lmw)

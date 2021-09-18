@@ -1,0 +1,38 @@
+### Random Forest Model
+rf_project = randomForest(var_factor_train$Employee.Status ~ .,
+                                         data=var_factor_train,
+                                         ntree=500, 
+                                         importance=TRUE)
+rf_project
+
+# See error based on number of trees
+error_trees = data.frame(Trees=rep(1:nrow(rf_project$err.rate), times=3),
+                            Type=rep(c("OOB", "Active", "Inactive"), each=nrow(rf_project$err.rate)),
+                            Error=c(rf_project$err.rate[,"OOB"],
+                                    rf_project$err.rate[,"Active"],
+                                    rf_project$err.rate[,"Inactive"]))
+ggplot(data=error_trees, aes(x=Trees, y=Error)) + geom_line(aes(color=Type))
+
+# Use model to predict categorization - Test data
+rf_predict = predict(rf_project, newdata=var_factor_test, type="class")
+table(var_factor_test$Employee.Status, rf_predict,
+      dnn=c("Actual", "Predicted"))
+
+error_func <- function(actual, predict)
+{
+  x <- table(actual, predict)
+  nrows <- nrow(x)
+  tble <- cbind(x/length(actual),
+               Error=sapply(1:nrows,
+                            function(r) round(sum(x[r,-r])/sum(x[r,]), 2)))
+  names(attr(tbl, "dimnames")) <- c("Actual", "Predicted")
+  return(tbl)
+}
+
+rf_error = error_func(var_factor_test$Employee.Status, rf_predict)
+round(rf_error, 3)
+
+# Find AUC and AUC confidence interval
+rf_auc = pROC::roc(rf_project$y, as.numeric(rf_project$predicted)) 
+rf_auc_ci = pROC::ci.auc(rf_project$y, as.numeric(rf_project$predicted)) rf_imp = round(randomForest::importance(rf_project), 2) 
+rf_imp[order(rf_imp[,2], decreasing=TRUE),]

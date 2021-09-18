@@ -1,0 +1,47 @@
+#Jackknife estimator
+
+y <- scan(filename3)
+b2 <- function(y){sum((y - mean(y))^4)/(sum((y - mean(y))^2))^2}
+ks <- c(1, 5)
+T <- b2(y)
+print(T)
+
+for (k in ks){
+  
+  TminusJ <- vector()
+  
+  jgroups <- seq(k, length(y), k)
+  
+  r <- length(jgroups)
+  
+  for ( j in jgroups ){
+    
+    jToRemove <- setdiff(1:length(y), seq(j -k+1, j, 1))
+    
+    TminusJ <- append(TminusJ, b2( y[jToRemove]) )
+    
+  }
+  
+  TbarDot <- mean( TminusJ )
+  
+  Tjstar <- r*T - (r-1)*TminusJ
+  
+  JT <- mean( Tjstar ) # J(T) = r*T - (r-1)*TbarDot
+  
+  VarTJHat <- sum( (Tjstar - JT)^2 )/( r*(r-1) )
+  
+  StDevHat <- sqrt(VarTJHat)
+  
+  print( sprintf('Length y = %i', length(y)) )
+  
+  print( sprintf('k = %i', k) )
+  
+  # print(TminusJ)
+  
+  print( sprintf( 'Estimated StDev = %f', StDevHat ) )
+  
+  print( sprintf( 'TbarDot = %f', TbarDot))
+  
+}
+
+}

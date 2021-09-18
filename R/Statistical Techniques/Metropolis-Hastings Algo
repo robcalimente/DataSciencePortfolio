@@ -1,0 +1,35 @@
+#Function for target and proposal distributions
+target <- function(x){
+  0.7*dnorm(x,mean=7,sd=0.5^2)+(1-0.7)*dnorm(x,mean=10, sd=0.5^2)}
+proposal <- function(x,y){
+  dnorm(x,y,sd=0.01^2)
+}
+
+#Initialize t,x
+t <- 1
+x <- rep(0,10001)
+x[t] <- 0
+
+while(t <= 10001){
+  #Generate x* from proposal dist
+  xstar <- rnorm(1,x[t], 0.01^2)
+  
+  #Calculate MH Ratio
+  r <- (target(xstar)*proposal(x[t],xstar)) / (target(x[t])*proposal(xstar,x[t]))
+  
+  #Reject or Accept
+  if(r>=1){
+    x[t+1] = xstar
+  }
+  else{
+    u <- runif(1,0,1)
+    if(u < r){
+      x[t+1] = xstar
+    }
+    else{
+      x[t+1] = x[t]
+    }
+  }
+  #Increment t
+  t <- t+1
+}

@@ -1,0 +1,31 @@
+### Residual Analysis - Residual Plots
+## Normal Probability Plot
+ext_sort <- sort(nfl_rstudent)
+prob <- (seq(n)-0.5)/n
+plot(ext_sort, sort(prob), xlab="Ranked R-Student", ylab="Probability", main="Normal Probability Plot")
+qqline(prob)
+
+## Plot of Residuals against the fitted value
+y_hat <- nfl_mlr$fitted.values
+plot(y_hat, ext_sort, xlab="yhat", ylab="R-Student", main = "Fitted Values vs. R-Student", ylim=c(-3,3), xlim=c(0,15))
+abline(h=0)
+
+## Plot of Residuals against the Regressor
+plot(density(y))
+var(y)
+mean(y)*(1-mean(y))
+(mean(y))^2
+
+plot(y_hat, nfl_mlr$residuals, xlim=c(0,15), ylim=c(0,15))
+
+
+## Normal Probability Plot - Reduced Model
+ext <- sort(nfl.red.rstudent)
+plot(ext, sort(prob), xlab = "Ranked R-Student", ylab='Probability', main="NPP - Reduced Model")
+qqline(prob)
+
+y_hat.red <- nfl.lmw.subset$fitted.values
+plot(y_hat.red, ext, xlab="yhat", ylab="R-Student", main = "Fitted Values vs. R-Student (Reduced Model)")
+abline(h=0)
+
+nfl.lmw.subset$coefficients

@@ -1,0 +1,10 @@
+### Partitioning the Data into Training and Test Sets
+set.seed(1)
+n = nrow(project_df)
+t_sample = sample(c(1:1754), floor(0.75*length(c(1:1754))), replace=FALSE) # Using 75% for training
+a_sample = sample(c(1755:n), floor(0.75*length(c(1755:n))), replace=FALSE) 
+
+var_train = var[c(t_sample,a_sample), ]
+var_test = var[-c(t_sample,a_sample), ]
+var_factor_train = var_factor[c(t_sample,a_sample), ]
+var_factor_test = var_factor[-c(t_sample,a_sample), ]
