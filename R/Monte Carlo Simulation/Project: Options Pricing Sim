@@ -1,0 +1,143 @@
+## Apply Monte Carlo simulation to develop an option pricing model based the Wiener process to 
+# estimate possible future price paths. 
+## Cover the origin and theory behind the Wiener process, its connection to Monte Carlo simulation, 
+# how it can be used to predict future stock prices, and in turn, how it can then be used to price option contracts. 
+## Apply these concepts to simulate future prices of the four FANG stocks (Facebook, Amazon, Netflix, Google) 
+# over a one-year time frame
+## Then, based on the potential paths of each stock, determine the prices of option contracts for a given expiration 
+# by discounting the average expected return back to present value.
+## Conclude with a comparison to actual option contracts and a perspective on the relative quality of the model’s output
+
+library(ggplot2)
+install.packages("Sim.DiffProc")
+library(Sim.DiffProc)
+
+# load dependencies
+library(xts)
+library(zoo)
+library(TTR)
+library(quantmod)
+
+# get historical equity quotes for FANG stocks (Facebook, Amazon, Netflix, Google)
+fang <- c("FB", "AMZN", "NFLX", "GOOGL") 
+startdate <- as.Date("2019-04-30")
+enddate <- as.Date("2020-04-29")
+getSymbols(fang, src = "yahoo", from = startdate, to = enddate, auto.assign = TRUE) # creates a timeseries object for each ticker
+
+# function to convert to data frame, standardize format, calculate daily returns
+TStoDF <- function(data, symbol) {
+  
+  # update column names
+  names(data) <- c("Open", "High", "Low", "Close", "Volume", "Adjusted")
+  
+  # calculate daily returns based on adjusted close
+  data$daily_return <- ROC(data$Adjusted, n = 1, type = "discrete")
+  
+  # convert to df
+  data <- as.data.frame(data)
+  
+  # add ticker symbol
+  data$ticker <- symbol
+  
+  # add date and reset index
+  data$date <- as.Date(row.names(data), format = "%Y-%m-%d")
+  row.names(data) <- NULL
+  
+  return(data)
+}
+
+# clean data using function above
+AMZN <- TStoDF(AMZN, "AMZN")
+FB <- TStoDF(FB, "FB")
+GOOGL <- TStoDF(GOOGL, "GOOGL")
+NFLX <- TStoDF(NFLX, "NFLX")
+
+# number of trading days to simulate prices (1 year)
+t <- 252
+
+# function to simulate prices based on wiener process
+price_simulator <- function(price_df, days, seed) {
+  
+  # set random seed
+  set.seed(seed)
+  
+  # starting date
+  date_0 <- max(price_df[, "date"])
+  
+  # starting price
+  price_0 <- price_df[price_df[,"date"]==date_0, "Adjusted"]
+  
+  # daily returns mean
+  mu_hat <- mean(price_df[, "daily_return"], na.rm = TRUE)
+  
+  # daily returns standard deviation
+  sigma_hat <- sd(price_df[, "daily_return"], na.rm = TRUE)
+  
+  # random noise from standard normal
+  z <- rnorm(days, mean = 0, sd = 1)
+  
+  # wiener process
+  W <- cumsum(z)
+    
+  # simualted prices
+  prices <- price_0 * exp(mu_hat - 0.5*sigma_hat^2 + sigma_hat*W)
+  
+  return(prices)
+}
+
+# test - temp
+a <- price_simulator(AMZN, days = t, seed = .5)
+qplot(1:t, a, geom = "line")
+b = price_simulator(FB, days = t, seed = 10)
+
+# function to simulate n price chains and calculate mean price at time t
+aggregator <- function(data, n, t) {
+  
+  # simulated prices at time t
+  prices_t <- c()
+  for (i in 1:n) {
+    price_i <- price_simulator(data, days = t, seed = i)
+    prices_t <- c(prices_t, price_i[t])
+  }
+  
+  # average price at time t from all simulations
+  price_mean <- mean(prices_t)
+  
+  return(price_mean)
+}
+
+
+# get option chain for one month expiration
+amzn_chain <- getOptionChain("AMZN", Exp = "2020-06-12", src = "yahoo")
+fb_chain <- getOptionChain("FB", Exp = enddate+30, src = "yahoo")
+googl_chain <- getOptionChain("GOOGL", Exp = enddate+30, src = "yahoo")
+nflx_chain <- getOptionChain("NFLX", Exp = enddate+30, src = "yahoo")
+
+
+# average one month future price based on 10,000 simulations
+amzn22 <- aggregator(AMZN, 10000, 22)
+
+# calls
+amzn_calls <- as.data.frame(amzn_chain$calls)
+
+# current price
+amzn_calls$current_price <- AMZN$Adjusted[nrow(AMZN)]
+
+# simulated price
+amzn_calls$simulated_price <- amzn22
+
+# payoff
+amzn_calls$payoff <- max(amzn_calls$simulated_price - amzn_calls$current_price, 0)
+
+# 1 month risk free rate
+r <- getSymbols("DGS1MO", src = "FRED", auto.assign = FALSE)
+
+# most recent rate, converted from percentage
+r <- as.numeric(r[length(r)]) / 100
+
+# adjust payoff, discount using risk free rate
+amzn_calls$payoff_npv <- amzn_calls$payoff * (1 / (1+r))
+
+# price option for each strike
+amzn_calls$option_price <- amzn_calls$current_price + amzn_calls$payoff_npv - amzn_calls$Strike
+

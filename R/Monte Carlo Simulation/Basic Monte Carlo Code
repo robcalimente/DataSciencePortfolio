@@ -1,0 +1,13 @@
+{r - Monte Carlo Method}
+x <- c()
+for(i in 1:1000){
+  u<-runif(1)
+  if(u<0.5){
+    x <- c(x, sqrt(u/2)) #sqrt(x/2) is the inverse CDF of 4x
+  }
+  if(u>0.5){
+    x <- c(x,1+(sqrt(1-u)/2)) #Inverse CDF of 4-4x
+  }
+}
+
+hist((x)) 
