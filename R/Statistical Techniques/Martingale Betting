@@ -1,0 +1,38 @@
+# Betting System - Martingale
+
+start <- 1000
+goal <- start + 10000
+bet <- 100    
+winning_prob <- 0.47   
+n <- 50000
+
+win_count <- 0
+set.seed(123)
+
+for (i in 1:n) {
+  
+  current_value <- start
+  current_bet <- bet
+  
+  flag <- FALSE
+  while (!flag) {
+    
+    if (runif(1) < winning_prob) {
+      current_value <- current_value + current_bet
+      current_bet <- bet
+    } else {
+      current_value <- current_value - current_bet
+      current_bet <- current_bet * 2
+    }
+    
+    if (current_value <= 0)
+      flag <- TRUE
+    
+    if (current_value >= goal) {
+      flag <- TRUE
+      win_count <- win_count + 1
+    }
+  }
+}
+
+cat("Win probability:", win_count/n, "\nLose probability:", 1-win_count/n)
