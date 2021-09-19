@@ -1,0 +1,13 @@
+select 
+lve.PRODUCT_ID, 
+max(im.PRODUCT_DESCRIPTION) as max_product_description, 
+im.DEPARTMENT, 
+im.CATEGORY, 
+im.SUBCATEGORY, 
+sum(lve.SALES) total_sales,
+sum(lve.UNITS) total_units
+from im.inmar_unified_item_master im
+join mdot_client.live_upcs lve on im.CLIENTID = lve.CLIENTID
+and im.PRODUCT_ID = lve.PRODUCT_ID
+where lve.PRODUCT_ID = 4011
+group by 1,3,4,5;

@@ -1,0 +1,11 @@
+set var jobid johnson;
+
+select distinct count(upc) as upc_ct, manuf_prefix, manufacturer, brand
+,gs1_companyname
+,department
+,category
+,subcategory
+from im.inmar_unified_item_master
+where brand imatching '$jobid'
+group by 2,3,4,5,6,7,8
+order by upc_ct desc;

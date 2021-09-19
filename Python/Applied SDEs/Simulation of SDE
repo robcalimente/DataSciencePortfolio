@@ -1,0 +1,9 @@
+# Simulation of SDE
+for _ in range(num_sims):
+    for i in range(1, ts.size):
+        t = (i-1) * dt
+        y = ys[i-1]
+        ys[i] = y + mu(y, t) * dt + sigma(y, t) * dW(dt)
+    plt.plot(ts, ys)
+
+plt.show()

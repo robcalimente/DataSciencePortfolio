@@ -1,0 +1,47 @@
+## Feed Forward Backprobagation Algo
+import numpy as np
+import NodeLayerClass as nl
+
+# Define imputt and output pairs as numpy arrays
+input = np.array([[1.,1.], [-1.,-1.]], float)
+desired_output = np.array([[.9], [0.05]], float)
+eta = 1
+
+weights_hidden = [0.3, 0.3, 0.3, 0.3]
+weights_output = [0.8, 0.8]
+bias = 0
+
+# Network architecture setup 
+hidden_layer = nl.NodeLayer(False, 2,2,weights_hidden, bias)
+output_layer = nl.NodeLayer(True, 2,1,weights_output,bias)
+
+for iter in range(0,15):
+    # Here is the feedforward epoch
+    for pair in range(0,2):
+        hidden_out = hidden_layer.get_layer_output_vector(input[pair,:])
+        output_out = output_layer.get_layer_output_vector(hidden_out)
+        error = output_layer.get_err_vector(desired_output[pair,:])
+        bigE = 0.5 * error**2 
+        # print hidden, output, error
+        print("Big E for iteration" + str(iter) + " = " + str(bigE))
+
+        # Now we initiate Backpropogation
+        output_layer.set_output_later_delta_values(desired_output[pair,:])
+        hidden_layer.set_hidden_layer_weighted_delta_values(output_layer)
+
+        # And now we calculate the delta weights for the layers
+        output_layer.calc_layer_delta_weights(eta, hidden_out)
+        hidden_layer.calc_layer_delta_weights(eta, input[pair,:])
+
+        # finally the weights are updated
+        output_layer.update_layer_weights()
+        hidden_layer.update_layer_weights()
+        error = output_layer.get_err_vector(desired_output[pair,:])
+        print("Big E for iteration " + str(iter) + " = " + str(bigE)
+
+# End loop to print final results
+hidden_out = hidden_layer.get_layer_output_vector(input[0,:])
+output_out = output_layer.get_layer_output_vector(hidden_out)
+error = output_layer.get_err_vector(desired_output[0,:])
+bigE - 0.5 * error**2
+

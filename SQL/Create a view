@@ -1,0 +1,31 @@
+set schema uim_updates;
+
+create or replace view manufacturer_brand_reference as
+select
+sq1.brand
+,sq1.manufacturer
+,sq1.manuf_prefix
+,sq1.upc_ct
+,sq2.man_ct
+from  (select distinct 
+  brand
+  ,manufacturer
+  ,manuf_prefix
+  ,count(upc) upc_ct
+  from im.inmar_unified_item_master 
+  where verified_qa_flag=1 and category not imatching 'major misc' and brand not imatching 'all other brands'
+  group by 1,2,3
+    ) sq1
+  join (select distinct 
+  brand
+  ,manuf_prefix
+  ,count(upc) upc_ct
+  ,count(distinct manufacturer) as man_ct
+  from im.inmar_unified_item_master 
+  where verified_qa_flag=1 and category not imatching 'major misc' and brand not imatching 'all other brands'
+  group by 1,2) sq2 on sq2.brand=sq1.brand and sq2.manuf_prefix=sq1.manuf_prefix
+
+order by brand desc,upc_ct desc, man_ct asc
+
+cascade drop images;
+create view image manufacturer_brand_reference;

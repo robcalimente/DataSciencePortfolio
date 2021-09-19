@@ -1,0 +1,61 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import math
+
+## OU Process
+# Parameters
+num_sims = 5
+B = 0.913711
+t_0 = 0
+t_end = 250
+N = 1000
+c_mu = 100
+k = 0.1
+c_sigma = 1
+y_init = 90
+
+dt = float(t_end - t_0) / N
+ts = np.arange(t_0, t_end, dt)
+ys = np.zeros(N)
+
+ys[0] = y_init
+
+# Simulation of SDE
+for _ in range(num_sims):
+    for i in range(1, ts.size):
+        t = (i-1) * dt
+        y = ys[i-1]
+        ys[i] = y + mu(y, t) * dt + sigma(y, t) * dW(dt)
+    plt.plot(ts, ys)
+
+plt.show()
+
+## Boundary Creation
+def b_t(t):
+    return c_mu + B * math.sqrt(t_end - t)
+t_boundary = np.arange(0, t_end+1, 1)
+
+b_t2 = np.vectorize(b_t)
+
+# Boundary Plot
+plt.plot(t_boundary, b_t2(t_boundary), color = 'red')
+plt.axhline(y=100, color='black', linestyle='-.')
+
+# Plot Settings
+plt.xlim([0,t_end])
+plt.ylim([c_mu, c_mu+1])
+plt.xlabel('Time', size = 12)
+plt.ylabel('Price', size = 12)
+plt.title('5 Realizations - Theta=100, K=0.01, Sigma=1, T=250')
+
+# Definitions
+
+
+def mu(y, t):
+    return k * (c_mu - y)
+
+def sigma(y, t):
+    return c_sigma
+
+def dW(delta_t):
+    return np.random.normal(loc=0.0, scale=np.sqrt(delta_t))

@@ -1,0 +1,28 @@
+-- Uncle Bens
+select * 
+from im.inmar_unified_item_master 
+where product_description imatching 'uncle be'
+or product_description like 'u%b'
+or product_description like 'u ben'
+or mdot_product_description imatching 'uncle be'
+or mdot_product_description like 'u%b'
+or mdot_product_description like 'u ben'
+or iri_brand imatching 'uncle be'
+or iri_major_brand imatching 'uncle be'
+or brand imatching 'uncle be' 
+and (manuf_prefix in ('0058496', '0054800')
+or manufacturer imatching 'mars inc');
+
+-- Aunt Jemima 
+select * 
+from im.inmar_unified_item_master 
+where product_description imatching 'jemima'
+or product_description like 'a%j'
+or mdot_product_description imatching 'jemima'
+or mdot_product_description like 'a%j'
+or iri_brand imatching 'jemima'
+or iri_major_brand imatching 'jemima'
+or brand imatching 'jemima' 
+and (manuf_prefix in ('0043000', '0038527', '0019600', '0030000', '00658276', '0051000')
+or manufacturer imatching 'pepsi'
+or manufacturer imatching 'conagra');
